@@ -6,6 +6,7 @@ import copy
 from itertools import product as prod
 
 
+
 class CSP:
     def __init__(self):
         # self.variables is a list of the variable names in the CSP
@@ -17,6 +18,10 @@ class CSP:
         # self.constraints[i][j] is a list of legal value pairs for
         # the variable pair (i, j)
         self.constraints = {}
+
+        # Track progress
+        self.backtrack_calls = 0
+        self.backtrack_failures = 0
 
     def add_variable(self, name: str, domain: list):
         """Add a new variable to the CSP.
@@ -168,6 +173,7 @@ class CSP:
         assignments and inferences that took place in previous
         iterations of the loop.
         """
+        self.backtrack_calls += 1
 
         # Fetch some var
         var = self.select_unassigned_variable(assignment)
@@ -192,6 +198,7 @@ class CSP:
                     return result
 
         # Reached if backtrack fail
+        self.backtrack_failures += 1
         return None
 
     def select_unassigned_variable(self, assignment):
@@ -242,7 +249,7 @@ class CSP:
                 if (x, y) in self.constraints[i][j]:
                     contains = True
                     break
-            # Values does not satisfy contraint - delete
+            # Value does not satisfy contraint
             if not contains:
                 assignment[i].remove(x)
                 revised = True
@@ -326,10 +333,26 @@ def print_sudoku_solution(solution):
 
 
 def main():
-    csp = create_sudoku_csp('./veryhard.txt')
+    sudokus = [
+        'easy.txt',
+        'medium.txt',
+        'hard.txt',
+        'veryhard.txt',
+    ]
 
-    solution = csp.backtracking_search()
-    print_sudoku_solution(solution)
+    for sudoku in sudokus:
+        csp = create_sudoku_csp(sudoku)
+        solution = csp.backtracking_search()
+
+        print()
+        print('===============================')
+        print(f'Difficulty:         {sudoku}')
+        print(f'Backtrack calls:    {csp.backtrack_calls}')
+        print(f'Backtrack failures: {csp.backtrack_failures}')
+        print_sudoku_solution(solution)
+        print('===============================')
+        print()
 
 
-main()
+if __name__ == "__main__":
+    main()
