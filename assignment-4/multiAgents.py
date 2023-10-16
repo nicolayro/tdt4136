@@ -135,7 +135,64 @@ class MinimaxAgent(MultiAgentSearchAgent):
         Returns whether or not the game state is a losing state
         """
         "*** YOUR CODE HERE ***"
-        print('Hello, Minimax')
+        def min(state):
+            # Termination state
+            if state.isWin() or state.isLose():
+                return self.evaluationFunction(state)
+
+            # Keep track of how many agents have made an action
+            self.turn += 1
+
+            best = 100000
+            # Look at all of the ghost's moves
+            for action in state.getLegalActions(self.turn):
+                next = state.generateSuccessor(self.turn, action)
+
+                val = None
+                # if everyone has made their turn, call max
+                if self.turn == next.getNumAgents() - 1:
+                    val = max(next)
+                    # Reset turn after getting out of max
+                    self.turn = next.getNumAgents() - 1
+                else:
+                    val = min(next)
+                # Get max value of min() and current best
+                best = val if val < best else best
+            self.turn -= 1
+            return best
+
+        def max(state):
+            self.turn = 0
+
+            # Termination state
+            if self.depth == 1 or state.isWin() or state.isLose():
+                return self.evaluationFunction(state)
+
+            self.depth -= 1
+
+            best = -1000000
+            # Look at all of pacman's moves
+            for action in state.getLegalActions(self.turn):
+                next = state.generateSuccessor(self.turn, action)
+                # Get max value of min() and current best
+                val = min(next)
+                best = val if val > best else best
+
+            self.depth += 1
+            return best
+
+        results = []
+        for action in gameState.getLegalActions(self.index):
+            self.turn = 0
+            next = gameState.generateSuccessor(self.index, action)
+            results.append((action, min(next)))
+
+        # (Action, Score)
+        argmax = (None, -1000000)
+        for action, score in results:
+            argmax = (action, score) if score > argmax[1] else argmax
+        return argmax[0]
+
 
 class AlphaBetaAgent(MultiAgentSearchAgent):
     """
@@ -147,7 +204,74 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         Returns the minimax action using self.depth and self.evaluationFunction
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        def min(state, alpha, beta):
+            # Termination state
+            if state.isWin() or state.isLose():
+                return self.evaluationFunction(state)
+
+            # Keep track of how many agents have made an action
+            self.turn += 1
+
+            best = 100000
+            # Look at all of the ghost's moves
+            for action in state.getLegalActions(self.turn):
+                next = state.generateSuccessor(self.turn, action)
+
+                val = None
+                # if everyone has made their turn, call max
+                if self.turn == next.getNumAgents() - 1:
+                    val = max(next, alpha, beta)
+                    # Reset turn after getting out of max
+                    self.turn = next.getNumAgents() - 1
+                else:
+                    val = min(next, alpha, beta)
+                # Get max value of min() and current best
+                best = val if val < best else best
+                if best <= alpha:
+                    break
+                beta = beta if beta < best else best
+
+            self.turn -= 1
+            return best
+
+        def max(state, alpha, beta):
+            self.turn = 0
+
+            # Termination state
+            if self.depth == 1 or state.isWin() or state.isLose():
+                return self.evaluationFunction(state)
+
+            self.depth -= 1
+
+            best = -1000000
+            # Look at all of pacman's moves
+            for action in state.getLegalActions(self.turn):
+                next = state.generateSuccessor(self.turn, action)
+                # Get max value of min() and current best
+                val = min(next, alpha, beta)
+                best = val if val > best else best
+                if best >= beta:
+                    break
+                alpha = alpha if alpha > best else best
+
+            self.depth += 1
+            return best
+
+        results = []
+        for action in gameState.getLegalActions(self.index):
+            self.turn = 0
+            next = gameState.generateSuccessor(self.index, action)
+            results.append((action, min(next, -1000000, 10000000)))
+
+        print(results)
+        # (Action, Score)
+        argmax = (None, -1000000)
+        for action, score in results:
+            argmax = (action, score) if score > argmax[1] else argmax
+        return argmax[0]
+
+
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
